@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS Student Dungeon</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dungeon: {
+                            dark: '#0a0a12',
+                            mid: '#1a1a2e',
+                            light: '#2a2a4a',
+                            accent: '#4f46e5',
+                            danger: '#dc2626',
+                            success: '#10b981',
+                            warning: '#f59e0b',
+                            text: '#e2e8f0',
+                        },
+                        mana: {
+                            blue: '#3b82f6',
+                            dark: '#1e40af'
+                        },
+                        category: {
+                            coding: '#3b82f6',
+                            exercise: '#10b981',
+                            study: '#8b5cf6',
+                            project: '#f59e0b',
+                            exam: '#ec4899'
+                        },
+                        tasktype: {
+                            daily: '#3b82f6',
+                            onetime: '#10b981',
+                            dated: '#8b5cf6'
+                        }
+                    },
+                    fontFamily: {
+                        'solo': ['"Rajdhani"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0a0a12;
+            color: #e2e8f0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(31, 41, 55, 0.1) 0%, rgba(31, 41, 55, 0) 20%),
+                radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0) 20%);
+        }
+
+        .dungeon-border {
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
+        }
+
+        .mana-bar {
+            background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 4px;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .coding-badge {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .exercise-badge {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .study-badge {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .project-badge {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .exam-badge {
+            background-color: rgba(236, 72, 153, 0.2);
+            color: #ec4899;
+        }
+
+        .tasktype-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-left: 0.5rem;
+        }
+
+        .daily-badge {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .onetime-badge {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .dated-badge {
+            background-color: rgba(139, 92, 246, 0.2);
+            color: #8b5cf6;
+        }
+
+        .tab-active {
+            border-bottom: 2px solid #4f46e5;
+            color: #4f46e5;
+        }
+
+        .date-input {
+            background-color: #1a1a2e;
+            border: 1px solid #2a2a4a;
+            color: #e2e8f0;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+
+        .task-type-selector {
+            display: flex;
+            margin-bottom: 0.5rem;
+        }
+
+        .task-type-btn {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .task-type-btn.active {
+            background-color: #4f46e5;
+            color: white;
+        }
+
+        .task-type-btn.inactive {
+            background-color: #2a2a4a;
+            color: #e2e8f0;
+        }
+
+        .website-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: cover;
+            margin-bottom: 8px;
+        }
+
+        .add-website-form {
+            display: none;
+            padding: 1rem;
+            background-color: #1a1a2e;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .add-website-form input {
+            background-color: #2a2a4a;
+            border: 1px solid #4f46e5;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            width: 100%;
+        }
+
+        .add-website-form button {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+
+        .add-website-form button.cancel {
+            background-color: #2a2a4a;
+        }
+
+        .level-up-animation {
+            animation: levelUp 1.5s ease-out;
+        }
+
+        @keyframes levelUp {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.5);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #4f46e5;
+            opacity: 0;
+            animation: confetti 5s ease-in-out;
+            z-index: 1000;
+        }
+
+        @keyframes confetti {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(1000px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Updated quick link styles */
+        /* Replace the existing quick link styles with these */
+        .quick-links-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .quick-link-box {
+            background-color: #1a1a2e;
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        .quick-link-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+
+        .quick-link-icon {
+            width: 32px;
+            height: 32px;
+            margin-bottom: 0.75rem;
+            border-radius: 4px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header with Player Stats -->
+        <header class="mb-8 dungeon-border rounded-lg p-6 bg-dungeon-mid relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-dungeon-dark to-dungeon-mid opacity-50"></div>
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center mb-4 md:mb-0">
+                    <div class="w-16 h-16 rounded-full bg-dungeon-light flex items-center justify-center mr-4 pulse">
+                        <i class="fas fa-laptop-code text-dungeon-accent text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold text-dungeon-text">CS Student</h1>
+                        <div class="flex items-center">
+                            <span class="text-dungeon-accent mr-2">Lv. <span id="player-level">5</span></span>
+                            <div class="w-32 h-2 bg-dungeon-dark rounded-full">
+                                <div id="exp-bar" class="mana-bar rounded-full" style="width: 45%"></div>
+                            </div>
+                            <span class="ml-2 text-sm text-dungeon-text"><span id="current-exp">450</span>/<span
+                                    id="max-exp">1000</span> EXP</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <div class="text-xs text-dungeon-text opacity-80">ALGO</div>
+                        <div class="text-xl font-bold text-dungeon-accent">87</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-dungeon-text opacity-80">PHYS</div>
+                        <div class="text-xl font-bold text-dungeon-accent">92</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-dungeon-text opacity-80">GRADES</div>
+                        <div class="text-xl font-bold text-dungeon-accent">3.8</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Daily Quests -->
+            <div class="lg:col-span-2">
+                <div class="dungeon-border rounded-lg p-6 bg-dungeon-mid mb-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-dungeon-text flex items-center">
+                            <i class="fas fa-scroll text-dungeon-accent mr-2"></i> CS Student Quests
+                        </h2>
+                        <div class="text-sm text-dungeon-text opacity-80">
+                            <span id="completed-count">0</span>/<span id="total-count">0</span> completed
+                        </div>
+                    </div>
+
+                    <!-- Category Tabs -->
+                    <div class="flex mb-4 border-b border-dungeon-light">
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="all">
+                            <i class="fas fa-list mr-1"></i> All
+                        </button>
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="coding">
+                            <i class="fas fa-code mr-1"></i> Coding
+                        </button>
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="exercise">
+                            <i class="fas fa-running mr-1"></i> Exercise
+                        </button>
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="study">
+                            <i class="fas fa-book mr-1"></i> Study
+                        </button>
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="project">
+                            <i class="fas fa-project-diagram mr-1"></i> Projects
+                        </button>
+                        <button
+                            class="tab-btn px-4 py-2 font-medium text-dungeon-text hover:text-dungeon-accent transition"
+                            data-category="exam">
+                            <i class="fas fa-file-alt mr-1"></i> Exams
+                        </button>
+                    </div>
+
+                    <!-- Task Input -->
+                    <div class="mb-4">
+                        <div class="task-type-selector">
+                            <div class="task-type-btn active" data-type="onetime">
+                                <i class="fas fa-check-circle mr-1"></i> One-time
+                            </div>
+                            <div class="task-type-btn inactive" data-type="daily">
+                                <i class="fas fa-redo mr-1"></i> Daily
+                            </div>
+                            <div class="task-type-btn inactive" data-type="dated">
+                                <i class="fas fa-calendar-day mr-1"></i> Until Date
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <select id="task-category"
+                                class="bg-dungeon-light border border-dungeon-light text-dungeon-text rounded-l-lg px-3 focus:outline-none">
+                                <option value="coding">Coding</option>
+                                <option value="exercise">Exercise</option>
+                                <option value="study">Study</option>
+                                <option value="project">Project</option>
+                                <option value="exam">Exam</option>
+                            </select>
+                            <input type="text" id="new-task" placeholder="Enter your quest..."
+                                class="flex-grow bg-dungeon-light border border-dungeon-light text-dungeon-text px-4 py-2 focus:outline-none focus:ring-2 focus:ring-dungeon-accent">
+                            <div id="date-input-container" class="hidden">
+                                <input type="date" id="task-date" class="date-input">
+                            </div>
+                            <button id="add-task"
+                                class="bg-dungeon-accent hover:bg-opacity-90 text-dungeon-text font-bold px-4 py-2 rounded-r-lg transition">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sample Tasks Button -->
+                    <div class="mb-4">
+                        <button id="sample-tasks" class="text-xs text-dungeon-accent hover:underline">
+                            <i class="fas fa-magic mr-1"></i> Load Sample CS Tasks
+                        </button>
+                    </div>
+
+                    <div id="task-list" class="space-y-3">
+                        <!-- Tasks will be added here dynamically -->
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="dungeon-border rounded-lg p-6 bg-dungeon-mid">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-bold text-dungeon-text flex items-center">
+                            <i class="fas fa-link text-dungeon-accent mr-2"></i> Quick Links
+                        </h2>
+                        <button id="add-website-btn"
+                            class="text-xs bg-dungeon-accent hover:bg-opacity-90 text-dungeon-text font-bold px-3 py-1 rounded-lg transition">
+                            <i class="fas fa-plus mr-1"></i> Add Website
+                        </button>
+                    </div>
+
+                    <div id="add-website-form" class="add-website-form">
+                        <input type="text" id="website-name" placeholder="Website Name (e.g. GitHub)">
+                        <input type="url" id="website-url" placeholder="Website URL (e.g. https://github.com)">
+                        <input type="text" id="website-icon" placeholder="Icon URL (optional)">
+                        <div class="flex">
+                            <button id="save-website" class="bg-dungeon-accent hover:bg-opacity-90">Save</button>
+                            <button id="cancel-website" class="cancel hover:bg-opacity-90">Cancel</button>
+                        </div>
+                    </div>
+
+                    <div id="quick-links" class="quick-links-container">
+                        <!-- Default websites -->
+                        <div class="quick-link-box" onclick="window.open('https://github.com', '_blank')">
+                            <img src="https://github.githubassets.com/favicons/favicon.png" class="quick-link-icon">
+                            <div class="font-bold text-dungeon-text">GitHub</div>
+                            <div class="text-xs text-dungeon-text opacity-80">Code hosting</div>
+                        </div>
+                        <div class="quick-link-box" onclick="window.open('https://leetcode.com', '_blank')">
+                            <img src="https://leetcode.com/favicon.ico" class="quick-link-icon">
+                            <div class="font-bold text-dungeon-text">LeetCode</div>
+                            <div class="text-xs text-dungeon-text opacity-80">Coding practice</div>
+                        </div>
+                        <div class="quick-link-box" onclick="window.open('https://stackoverflow.com', '_blank')">
+                            <img src="https://stackoverflow.com/favicon.ico" class="quick-link-icon">
+                            <div class="font-bold text-dungeon-text">Stack Overflow</div>
+                            <div class="text-xs text-dungeon-text opacity-80">Q&A</div>
+                        </div>
+                        <div class="quick-link-box" onclick="window.open('https://www.youtube.com', '_blank')">
+                            <img src="https://www.youtube.com/favicon.ico" class="quick-link-icon">
+                            <div class="font-bold text-dungeon-text">YouTube</div>
+                            <div class="text-xs text-dungeon-text opacity-80">Tutorials</div>
+                        </div>
+                        <!-- User added websites will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dungeon Progress -->
+            <div>
+                <div class="dungeon-border rounded-lg p-6 bg-dungeon-mid mb-6">
+                    <h2 class="text-xl font-bold text-dungeon-text flex items-center mb-6">
+                        <i class="fas fa-dungeon text-dungeon-accent mr-2"></i> Student Progress
+                    </h2>
+
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-dungeon-text">Daily Completion</span>
+                            <span class="text-dungeon-accent font-bold" id="daily-percentage">0%</span>
+                        </div>
+                        <div class="w-full h-3 bg-dungeon-dark rounded-full">
+                            <div id="progress-bar"
+                                class="h-3 rounded-full bg-gradient-to-r from-dungeon-accent to-mana-blue"
+                                style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-dungeon-light flex items-center justify-center mr-3">
+                                <i class="fas fa-fire text-dungeon-accent"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="text-dungeon-text font-medium">Current Streak</div>
+                                <div class="text-xs text-dungeon-text opacity-80">Consecutive days completing tasks
+                                </div>
+                            </div>
+                            <div class="text-xl font-bold text-dungeon-accent" id="streak-count">0</div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-dungeon-light flex items-center justify-center mr-3">
+                                <i class="fas fa-trophy text-dungeon-accent"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="text-dungeon-text font-medium">Total Tasks</div>
+                                <div class="text-xs text-dungeon-text opacity-80">All-time completed tasks</div>
+                            </div>
+                            <div class="text-xl font-bold text-dungeon-accent" id="total-quests">0</div>
+                        </div>
+
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-dungeon-light flex items-center justify-center mr-3">
+                                <i class="fas fa-gem text-dungeon-accent"></i>
+                            </div>
+                            <div class="flex-grow">
+                                <div class="text-dungeon-text font-medium">Next Reward</div>
+                                <div class="text-xs text-dungeon-text opacity-80">At <span
+                                        id="next-reward-exp">200</span> EXP</div>
+                            </div>
+                            <div class="text-xl font-bold text-dungeon-accent">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="dungeon-border rounded-lg p-6 bg-dungeon-mid mb-6">
+                    <h2 class="text-xl font-bold text-dungeon-text flex items-center mb-6">
+                        <i class="fas fa-chart-pie text-dungeon-accent mr-2"></i> Category Breakdown
+                    </h2>
+
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="bg-dungeon-light rounded-lg p-3 text-center">
+                            <div class="text-sm text-dungeon-text opacity-80 mb-1">Coding</div>
+                            <div class="text-xl font-bold text-category-coding" id="coding-count">0</div>
+                        </div>
+                        <div class="bg-dungeon-light rounded-lg p-3 text-center">
+                            <div class="text-sm text-dungeon-text opacity-80 mb-1">Exercise</div>
+                            <div class="text-xl font-bold text-category-exercise" id="exercise-count">0</div>
+                        </div>
+                        <div class="bg-dungeon-light rounded-lg p-3 text-center">
+                            <div class="text-sm text-dungeon-text opacity-80 mb-1">Study</div>
+                            <div class="text-xl font-bold text-category-study" id="study-count">0</div>
+                        </div>
+                        <div class="bg-dungeon-light rounded-lg p-3 text-center">
+                            <div class="text-sm text-dungeon-text opacity-80 mb-1">Projects</div>
+                            <div class="text-xl font-bold text-category-project" id="project-count">0</div>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <div class="inline-block bg-dungeon-light rounded-lg p-3">
+                            <div class="text-sm text-dungeon-text opacity-80 mb-1">Exams</div>
+                            <div class="text-xl font-bold text-category-exam" id="exam-count">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Messages -->
+                <div class="dungeon-border rounded-lg p-6 bg-dungeon-mid">
+                    <h2 class="text-xl font-bold text-dungeon-text flex items-center mb-6">
+                        <i class="fas fa-terminal text-dungeon-accent mr-2"></i> System Messages
+                    </h2>
+
+                    <div id="system-messages" class="space-y-3 max-h-64 overflow-y-auto">
+                        <div
+                            class="bg-dungeon-dark rounded p-3 text-sm text-dungeon-text border-l-4 border-dungeon-accent">
+                            <div class="font-bold text-dungeon-accent">SYSTEM:</div>
+                            <div>Welcome to your CS Student Dungeon. Complete tasks to level up your skills!</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <button id="clear-messages"
+                            class="text-xs text-dungeon-text opacity-70 hover:opacity-100 transition">
+                            <i class="fas fa-trash mr-1"></i> Clear Messages
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Crystals -->
+        <div class="fixed bottom-0 left-0 w-full flex justify-between px-8 pointer-events-none z-0 opacity-20">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-dungeon-accent to-transparent floating"
+                style="animation-delay: 0s;"></div>
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-mana-blue to-transparent floating"
+                style="animation-delay: 1s;"></div>
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-dungeon-accent to-transparent floating"
+                style="animation-delay: 0.5s;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Load tasks from localStorage
+            const tasks = JSON.parse(localStorage.getItem('csStudentTasks')) || [];
+            const streak = parseInt(localStorage.getItem('streak')) || 0;
+            const totalQuests = parseInt(localStorage.getItem('totalQuests')) || 0;
+            const playerLevel = parseInt(localStorage.getItem('playerLevel')) || 1;
+            const currentExp = parseInt(localStorage.getItem('currentExp')) || 0;
+            const maxExp = calculateMaxExp(playerLevel);
+            const consecutiveDays = parseInt(localStorage.getItem('consecutiveDays')) || 0;
+            let activeCategory = 'all';
+            let activeTaskType = 'onetime';
+
+            // Load websites from localStorage
+            const websites = JSON.parse(localStorage.getItem('csStudentWebsites')) || [];
+
+            // Initialize UI
+            updateTaskList();
+            updateStreak(streak);
+            updateTotalQuests(totalQuests);
+            updatePlayerStats(playerLevel, currentExp, maxExp);
+            updateProgress();
+            updateCategoryCounts();
+            updateWebsites();
+
+            // Set active tab
+            document.querySelector('.tab-btn[data-category="all"]').classList.add('tab-active');
+
+            // Add new task
+            document.getElementById('add-task').addEventListener('click', addTask);
+            document.getElementById('new-task').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') addTask();
+            });
+
+            // Clear messages
+            document.getElementById('clear-messages').addEventListener('click', function () {
+                document.getElementById('system-messages').innerHTML = `
+                    <div class="bg-dungeon-dark rounded p-3 text-sm text-dungeon-text border-l-4 border-dungeon-accent">
+                        <div class="font-bold text-dungeon-accent">SYSTEM:</div>
+                        <div>Message log cleared.</div>
+                    </div>
+                `;
+            });
+
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+                    this.classList.add('tab-active');
+                    activeCategory = this.dataset.category;
+                    updateTaskList();
+                });
+            });
+
+            // Task type switching
+            document.querySelectorAll('.task-type-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const type = this.dataset.type;
+                    activeTaskType = type;
+
+                    // Update UI
+                    document.querySelectorAll('.task-type-btn').forEach(b => {
+                        b.classList.remove('active');
+                        b.classList.add('inactive');
+                    });
+                    this.classList.remove('inactive');
+                    this.classList.add('active');
+
+                    // Show/hide date input
+                    const dateContainer = document.getElementById('date-input-container');
+                    if (type === 'dated') {
+                        dateContainer.classList.remove('hidden');
+                        // Set minimum date to today
+                        const today = new Date().toISOString().split('T')[0];
+                        document.getElementById('task-date').min = today;
+                    } else {
+                        dateContainer.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Load sample tasks
+            document.getElementById('sample-tasks').addEventListener('click', loadSampleTasks);
+
+            // Website management - Fixed event listeners
+            document.getElementById('add-website-btn').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('add-website-form').style.display = 'block';
+            });
+
+            document.getElementById('cancel-website').addEventListener('click', function (e) {
+                e.preventDefault();
+                document.getElementById('add-website-form').style.display = 'none';
+                document.getElementById('website-name').value = '';
+                document.getElementById('website-url').value = '';
+                document.getElementById('website-icon').value = '';
+            });
+
+            document.getElementById('save-website').addEventListener('click', function (e) {
+                e.preventDefault();
+                const name = document.getElementById('website-name').value.trim();
+                let url = document.getElementById('website-url').value.trim();
+                const icon = document.getElementById('website-icon').value.trim();
+
+                if (!name || !url) {
+                    addSystemMessage('Please enter both a name and URL for the website');
+                    return;
+                }
+
+                // Add https:// if not present
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'https://' + url;
+                }
+
+                const newWebsite = {
+                    id: Date.now(),
+                    name: name,
+                    url: url,
+                    icon: icon || getDefaultIcon(url)
+                };
+
+                websites.push(newWebsite);
+                localStorage.setItem('csStudentWebsites', JSON.stringify(websites));
+
+                document.getElementById('add-website-form').style.display = 'none';
+                document.getElementById('website-name').value = '';
+                document.getElementById('website-url').value = '';
+                document.getElementById('website-icon').value = '';
+
+                updateWebsites();
+                addSystemMessage(`Added new website: ${name}`);
+            });
+
+            function getDefaultIcon(url) {
+                // Try to get favicon from common domains
+                try {
+                    const domain = new URL(url).hostname;
+                    return `https://${domain}/favicon.ico`;
+                } catch {
+                    return '';
+                }
+            }
+
+            function updateWebsites() {
+                const quickLinksDiv = document.getElementById('quick-links');
+
+                // Clear only user-added websites (keep the default ones)
+                const defaultLinks = Array.from(quickLinksDiv.querySelectorAll('.quick-link-box')).filter(box => {
+                    return ['GitHub', 'LeetCode', 'Stack Overflow', 'YouTube'].some(name =>
+                        box.textContent.includes(name)
+                    );
+                });
+
+                quickLinksDiv.innerHTML = '';
+
+                // Add back default links
+                defaultLinks.forEach(link => quickLinksDiv.appendChild(link));
+
+                // Add user websites
+                websites.forEach(website => {
+                    const websiteBox = document.createElement('div');
+                    websiteBox.className = 'quick-link-box';
+                    websiteBox.onclick = () => window.open(website.url, '_blank');
+
+                    const iconSrc = website.icon || getDefaultIcon(website.url);
+
+                    websiteBox.innerHTML = `
+            ${iconSrc ? `<img src="${iconSrc}" class="quick-link-icon" onerror="this.src='https://www.google.com/favicon.ico'">` :
+                            `<div class="quick-link-icon bg-dungeon-accent flex items-center justify-center rounded-full"><i class="fas fa-globe text-xs"></i></div>`}
+            <div class="font-bold text-dungeon-text">${website.name}</div>
+            <div class="text-xs text-dungeon-text opacity-80">${new URL(website.url).hostname}</div>
+        `;
+
+                    quickLinksDiv.appendChild(websiteBox);
+                });
+            }
+
+            function addTask() {
+                const taskInput = document.getElementById('new-task');
+                const taskText = taskInput.value.trim();
+                const taskCategory = document.getElementById('task-category').value;
+
+                if (!taskText) return;
+
+                const newTask = {
+                    id: Date.now(),
+                    text: taskText,
+                    category: taskCategory,
+                    type: activeTaskType,
+                    completed: false,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Add additional properties based on task type
+                if (activeTaskType === 'dated') {
+                    const dateInput = document.getElementById('task-date');
+                    if (!dateInput.value) {
+                        addSystemMessage('Please select a date for this task');
+                        return;
+                    }
+                    newTask.dueDate = dateInput.value;
+                }
+
+                tasks.push(newTask);
+
+                saveTasks();
+                updateTaskList();
+                updateCategoryCounts();
+                taskInput.value = '';
+                addSystemMessage(`New ${taskCategory} task added: "${taskText}"`);
+
+                // Reset to default task type
+                activeTaskType = 'onetime';
+                document.querySelectorAll('.task-type-btn').forEach(b => {
+                    b.classList.remove('active');
+                    b.classList.add('inactive');
+                });
+                document.querySelector('.task-type-btn[data-type="onetime"]').classList.remove('inactive');
+                document.querySelector('.task-type-btn[data-type="onetime"]').classList.add('active');
+                document.getElementById('date-input-container').classList.add('hidden');
+
+                // Focus back on input for quick adding
+                taskInput.focus();
+            }
+
+            function updateTaskList() {
+                const taskList = document.getElementById('task-list');
+                let filteredTasks = activeCategory === 'all'
+                    ? tasks
+                    : tasks.filter(task => task.category === activeCategory);
+
+                // Filter out expired dated tasks
+                const today = new Date().toISOString().split('T')[0];
+                filteredTasks = filteredTasks.filter(task => {
+                    if (task.type === 'dated' && task.dueDate) {
+                        return task.dueDate >= today;
+                    }
+                    return true;
+                });
+
+                const completedCount = tasks.filter(task => task.completed).length;
+                const totalCount = tasks.length;
+
+                document.getElementById('completed-count').textContent = completedCount;
+                document.getElementById('total-count').textContent = totalCount;
+
+                if (filteredTasks.length === 0) {
+                    taskList.innerHTML = `
+                        <div class="text-center py-8 text-dungeon-text opacity-60">
+                            <i class="fas fa-scroll fa-2x mb-2"></i>
+                            <div>No ${activeCategory === 'all' ? '' : activeCategory} tasks available</div>
+                            <div class="text-xs mt-2">Add your first task to begin</div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                taskList.innerHTML = filteredTasks.map(task => {
+                    // Check if this is a daily task that needs to be reset
+                    if (task.type === 'daily' && task.completed) {
+                        const lastCompleted = new Date(task.lastCompleted || task.timestamp);
+                        const today = new Date();
+
+                        if (lastCompleted.toDateString() !== today.toDateString()) {
+                            // It's a new day, reset the task
+                            task.completed = false;
+                            saveTasks();
+                        }
+                    }
+
+                    // Format due date if exists
+                    let dueDateDisplay = '';
+                    if (task.type === 'dated' && task.dueDate) {
+                        const dueDate = new Date(task.dueDate);
+                        dueDateDisplay = ` (Due: ${dueDate.toLocaleDateString()})`;
+                    }
+
+                    return `
+                    <div class="task-item dungeon-border rounded-lg p-4 bg-dungeon-light flex items-center justify-between transition ${task.completed ? 'opacity-70' : ''}" data-id="${task.id}">
+                        <div class="flex items-center">
+                            <button class="complete-btn w-6 h-6 rounded-full border-2 ${task.completed ? 'bg-dungeon-accent border-dungeon-accent' : 'border-dungeon-text'} flex items-center justify-center mr-3">
+                                ${task.completed ? '<i class="fas fa-check text-dungeon-text text-xs"></i>' : ''}
+                            </button>
+                            <div>
+                                <span class="${task.completed ? 'line-through text-dungeon-text opacity-60' : 'text-dungeon-text'}">${task.text}${dueDateDisplay}</span>
+                                <div class="mt-1">
+                                    <span class="category-badge ${task.category}-badge">${task.category}</span>
+                                    <span class="tasktype-badge ${task.type}-badge">
+                                        ${task.type === 'daily' ? '<i class="fas fa-redo mr-1"></i>' : ''}
+                                        ${task.type === 'onetime' ? '<i class="fas fa-check-circle mr-1"></i>' : ''}
+                                        ${task.type === 'dated' ? '<i class="fas fa-calendar-day mr-1"></i>' : ''}
+                                        ${task.type}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="delete-btn text-dungeon-text opacity-50 hover:opacity-100 hover:text-dungeon-danger transition">
+                            <i class="fas fa-trash"></i>
+                            </button>
+                    </div>
+                    `;
+                }).join('');
+
+                // Add event listeners
+                document.querySelectorAll('.complete-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const taskId = parseInt(this.closest('.task-item').dataset.id);
+                        toggleTaskComplete(taskId);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        const taskId = parseInt(this.closest('.task-item').dataset.id);
+                        deleteTask(taskId);
+                    });
+                });
+
+                updateProgress();
+            }
+
+            function toggleTaskComplete(taskId) {
+                const taskIndex = tasks.findIndex(task => task.id === taskId);
+                if (taskIndex === -1) return;
+
+                const wasCompleted = tasks[taskIndex].completed;
+                tasks[taskIndex].completed = !wasCompleted;
+
+                // For daily tasks, record when they were completed
+                if (tasks[taskIndex].type === 'daily' && !wasCompleted) {
+                    tasks[taskIndex].lastCompleted = new Date().toISOString();
+                }
+
+                saveTasks();
+                updateTaskList();
+                updateCategoryCounts();
+
+                if (!wasCompleted) {
+                    // Task was just completed
+                    const expGain = getExpForTaskType(tasks[taskIndex].category);
+                    addExp(expGain);
+                    addSystemMessage(`Task completed! +${expGain} EXP (${tasks[taskIndex].category})`);
+
+                    // Check if this is the first completed task today
+                    const lastCompletionDate = localStorage.getItem('lastCompletionDate');
+                    const today = new Date().toDateString();
+
+                    if (lastCompletionDate !== today) {
+                        // New streak day
+                        const newStreak = streak + 1;
+                        updateStreak(newStreak);
+                        localStorage.setItem('streak', newStreak);
+                        localStorage.setItem('lastCompletionDate', today);
+
+                        // Update consecutive days
+                        const newConsecutiveDays = consecutiveDays + 1;
+                        localStorage.setItem('consecutiveDays', newConsecutiveDays);
+
+                        // Check for level up conditions
+                        checkLevelUpConditions(newStreak, newConsecutiveDays);
+
+                        if (newStreak > 3) {
+                            addSystemMessage(`Daily streak: ${newStreak} days! Keep it up!`);
+                        }
+                    }
+
+                    // Check if all tasks are completed
+                    const allTasksCompleted = tasks.every(task => task.completed);
+                    if (allTasksCompleted) {
+                        addSystemMessage("All tasks completed for today! Great job!");
+                        checkLevelUpConditions(streak, consecutiveDays, true);
+                    }
+
+                    // Update total quests
+                    const newTotal = totalQuests + 1;
+                    updateTotalQuests(newTotal);
+                    localStorage.setItem('totalQuests', newTotal);
+                } else {
+                    // Task was uncompleted
+                    const expLoss = getExpForTaskType(tasks[taskIndex].category);
+                    addExp(-expLoss);
+                    addSystemMessage(`Task marked incomplete. -${expLoss} EXP`);
+                }
+            }
+
+            function checkLevelUpConditions(currentStreak, currentConsecutiveDays, allTasksCompleted = false) {
+                // Level up if:
+                // 1. Completed all tasks in a day (allTasksCompleted)
+                // 2. Completed daily tasks for 7 consecutive days (currentConsecutiveDays >= 7)
+
+                let shouldLevelUp = false;
+
+                if (allTasksCompleted) {
+                    shouldLevelUp = true;
+                    addSystemMessage("Level up! You completed all tasks for today!");
+                } else if (currentConsecutiveDays >= 7) {
+                    shouldLevelUp = true;
+                    addSystemMessage("Level up! You completed daily tasks for 7 consecutive days!");
+                    localStorage.setItem('consecutiveDays', 0); // Reset counter
+                }
+
+                if (shouldLevelUp) {
+                    levelUp();
+                }
+            }
+
+            function levelUp() {
+                const currentLevel = parseInt(localStorage.getItem('playerLevel')) || 1;
+                const newLevel = currentLevel + 1;
+
+                // Update level
+                localStorage.setItem('playerLevel', newLevel);
+
+                // Reset EXP to 0 for new level
+                localStorage.setItem('currentExp', 0);
+                const newMaxExp = calculateMaxExp(newLevel);
+                localStorage.setItem('maxExp', newMaxExp);
+
+                // Update UI with animation
+                const levelElement = document.getElementById('player-level');
+                levelElement.classList.add('level-up-animation');
+                setTimeout(() => {
+                    levelElement.classList.remove('level-up-animation');
+                }, 1500);
+
+                // Create confetti effect
+                createConfetti();
+
+                // Update stats
+                updatePlayerStats(newLevel, 0, newMaxExp);
+                addSystemMessage(`Congratulations! You reached Level ${newLevel}!`);
+            }
+
+            function createConfetti() {
+                const colors = ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ec4899'];
+
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + 'vw';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = Math.random() * 10 + 5 + 'px';
+                    confetti.style.height = Math.random() * 10 + 5 + 'px';
+                    confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                    confetti.style.animationDelay = Math.random() * 2 + 's';
+
+                    document.body.appendChild(confetti);
+
+                    // Remove confetti after animation
+                    setTimeout(() => {
+                        confetti.remove();
+                    }, 5000);
+                }
+            }
+
+            function getExpForTaskType(type) {
+                // Different EXP rewards for different task types
+                const expValues = {
+                    'coding': 15,
+                    'exercise': 10,
+                    'study': 12,
+                    'project': 20,
+                    'exam': 25
+                };
+                return expValues[type] || 10;
+            }
+
+            function deleteTask(taskId) {
+                const taskIndex = tasks.findIndex(task => task.id === taskId);
+                if (taskIndex === -1) return;
+
+                const wasCompleted = tasks[taskIndex].completed;
+                tasks.splice(taskIndex, 1);
+
+                saveTasks();
+                updateTaskList();
+                updateCategoryCounts();
+                addSystemMessage(`Task removed from your list.`);
+
+                if (wasCompleted) {
+                    // Remove EXP if the task was completed
+                    const expLoss = getExpForTaskType(tasks[taskIndex].category);
+                    addExp(-expLoss);
+                    updateTotalQuests(totalQuests - 1);
+                    localStorage.setItem('totalQuests', totalQuests - 1);
+                }
+            }
+
+            function updateCategoryCounts() {
+                const codingCount = tasks.filter(t => t.category === 'coding' && t.completed).length;
+                const exerciseCount = tasks.filter(t => t.category === 'exercise' && t.completed).length;
+                const studyCount = tasks.filter(t => t.category === 'study' && t.completed).length;
+                const projectCount = tasks.filter(t => t.category === 'project' && t.completed).length;
+                const examCount = tasks.filter(t => t.category === 'exam' && t.completed).length;
+
+                document.getElementById('coding-count').textContent = codingCount;
+                document.getElementById('exercise-count').textContent = exerciseCount;
+                document.getElementById('study-count').textContent = studyCount;
+                document.getElementById('project-count').textContent = projectCount;
+                document.getElementById('exam-count').textContent = examCount;
+            }
+
+            function saveTasks() {
+                localStorage.setItem('csStudentTasks', JSON.stringify(tasks));
+            }
+
+            function updateStreak(count) {
+                document.getElementById('streak-count').textContent = count;
+            }
+
+            function updateTotalQuests(count) {
+                document.getElementById('total-quests').textContent = count;
+            }
+
+            function addSystemMessage(text) {
+                const messagesDiv = document.getElementById('system-messages');
+                const message = document.createElement('div');
+                message.className = 'bg-dungeon-dark rounded p-3 text-sm text-dungeon-text border-l-4 border-dungeon-accent';
+                message.innerHTML = `
+                    <div class="font-bold text-dungeon-accent">SYSTEM:</div>
+                    <div>${text}</div>
+                `;
+                messagesDiv.appendChild(message);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            function updateProgress() {
+                const completedCount = tasks.filter(task => task.completed).length;
+                const totalCount = tasks.length;
+                const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+                document.getElementById('daily-percentage').textContent = `${percentage}%`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+            }
+
+            function calculateMaxExp(level) {
+                return level * 200 + 800; // Exponential growth
+            }
+
+            function updatePlayerStats(level, exp, maxExp) {
+                document.getElementById('player-level').textContent = level;
+                document.getElementById('current-exp').textContent = exp;
+                document.getElementById('max-exp').textContent = maxExp;
+                document.getElementById('exp-bar').style.width = `${(exp / maxExp) * 100}%`;
+                document.getElementById('next-reward-exp').textContent = Math.ceil((exp + 1) / 200) * 200;
+            }
+
+            function addExp(amount) {
+                let newExp = currentExp + amount;
+                let newLevel = playerLevel;
+                let newMaxExp = maxExp;
+
+                // Level up check (old system - kept for EXP-based leveling)
+                while (newExp >= newMaxExp) {
+                    newExp -= newMaxExp;
+                    newLevel++;
+                    newMaxExp = calculateMaxExp(newLevel);
+                    addSystemMessage(`LEVEL UP! You are now Level ${newLevel}!`);
+                }
+
+                // Prevent negative EXP
+                if (newExp < 0) newExp = 0;
+
+                // Save and update
+                localStorage.setItem('currentExp', newExp);
+                localStorage.setItem('playerLevel', newLevel);
+                localStorage.setItem('maxExp', newMaxExp);
+
+                updatePlayerStats(newLevel, newExp, newMaxExp);
+            }
+
+            function loadSampleTasks() {
+                if (tasks.length > 0 && !confirm('This will replace your current tasks. Continue?')) {
+                    return;
+                }
+
+                // Clear existing tasks
+                tasks.length = 0;
+
+                // Add sample CS student tasks with different types
+                const sampleTasks = [
+                    { text: "Solve 3 LeetCode medium problems", category: "coding", type: "daily" },
+                    { text: "Work on final project for 1 hour", category: "project", type: "onetime" },
+                    { text: "Review algorithms for exam", category: "study", type: "dated", dueDate: getFutureDate(7) },
+                    { text: "30-minute cardio workout", category: "exercise", type: "daily" },
+                    { text: "Prepare for Data Structures midterm", category: "exam", type: "dated", dueDate: getFutureDate(14) },
+                    { text: "Read Chapter 5 of OS textbook", category: "study", type: "onetime" },
+                    { text: "Implement DFS in Python", category: "coding", type: "onetime" },
+                    { text: "Stretch for 15 minutes", category: "exercise", type: "daily" },
+                    { text: "Fix bugs in group project", category: "project", type: "dated", dueDate: getFutureDate(3) },
+                    { text: "Practice SQL queries", category: "coding", type: "daily" }
+                ];
+
+                sampleTasks.forEach(task => {
+                    tasks.push({
+                        id: Date.now() + Math.floor(Math.random() * 1000),
+                        text: task.text,
+                        category: task.category,
+                        type: task.type,
+                        completed: false,
+                        timestamp: new Date().toISOString(),
+                        dueDate: task.dueDate
+                    });
+                });
+
+                saveTasks();
+                updateTaskList();
+                updateCategoryCounts();
+                addSystemMessage("Sample CS tasks loaded. Good luck with your studies!");
+            }
+
+            function getFutureDate(days) {
+                const date = new Date();
+                date.setDate(date.getDate() + days);
+                return date.toISOString().split('T')[0];
+            }
+
+            // Check for streak continuation
+            function checkStreak() {
+                const lastCompletionDate = localStorage.getItem('lastCompletionDate');
+                const today = new Date().toDateString();
+
+                if (lastCompletionDate) {
+                    const lastDate = new Date(lastCompletionDate);
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+
+                    if (lastDate.toDateString() === yesterday.toDateString()) {
+                        // Streak continues
+                        return;
+                    } else if (lastDate.toDateString() !== today) {
+                        // Streak broken
+                        localStorage.setItem('streak', 0);
+                        localStorage.setItem('consecutiveDays', 0);
+                        updateStreak(0);
+                        addSystemMessage('Streak broken! Complete a task today to start a new streak.');
+                    }
+                }
+            }
+
+            // Initialize streak check
+            checkStreak();
+
+            // Add welcome message
+            setTimeout(() => {
+                addSystemMessage('Computer Science is no magic. It\'s just practice!');
+            }, 1000);
+
+            // Check for daily tasks that needs to be reset
+            function resetDailyTasks() {
+                tasks.forEach(task => {
+                    if (task.type === 'daily' && task.completed) {
+                        const lastCompleted = new Date(task.lastCompleted || task.timestamp);
+                        const today = new Date();
+
+                        if (lastCompleted.toDateString() !== today.toDateString()) {
+                            task.completed = false;
+                        }
+                    }
+                });
+                saveTasks();
+                updateTaskList();
+            }
+
+            // Check for daily tasks reset on page load
+            resetDailyTasks();
+        });
+    </script>
+</body>
+
+</html>
